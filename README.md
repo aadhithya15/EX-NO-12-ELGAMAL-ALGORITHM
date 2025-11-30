@@ -24,64 +24,114 @@ To Implement ELGAMAL ALGORITHM
 6. Security: The security of the ElGamal algorithm relies on the difficulty of solving the discrete logarithm problem in a large prime field, making it secure for encryption.
 
 ## Program:
-```
-#include <stdio.h>
-#include <math.h>
 
-// Function to compute modular exponentiation (base^exp % mod)
-long long int modExp(long long int base, long long int exp, long long int mod) {
-    long long int result = 1;
-    while (exp > 0) {
-        if (exp % 2 == 1) {
-            result = (result * base) % mod;
-        }
-        base = (base * base) % mod;
-        exp = exp / 2;
-    }
-    return result;
-}
-
-int main() {
-    long long int p, g, privateKeyA, publicKeyA;
-    long long int k, message, c1, c2, decryptedMessage;
-
-    // Step 1: Input a large prime number (p) and a generator (g)
-    printf("Enter a large prime number (p): ");
-    scanf("%lld", &p);
-    printf("Enter a primitive root or generator (g): ");
-    scanf("%lld", &g);
-
-    // Step 2: Alice inputs her private key
-    printf("Enter private key: ");
-    scanf("%lld", &privateKeyA);
-
-    // Step 3: Compute Alice's public key (public_key = g^privateKeyA mod p)
-    publicKeyA = modExp(g, privateKeyA, p);
-    printf("public key: %lld\n", publicKeyA);
-
-    // Step 4: Bob inputs the message to be encrypted and selects a random k
-    printf("Enter the message to encrypt (as a number): ");
-    scanf("%lld", &message);
-    printf("Enter a random number k: ");
-    scanf("%lld", &k);
-
-    // Step 5: Bob computes ciphertext (c1 = g^k mod p, c2 = (message * publicKeyA^k) mod p)
-    c1 = modExp(g, k, p);
-    c2 = (message * modExp(publicKeyA, k, p)) % p;
-    printf("Encrypted message (c1, c2): (%lld, %lld)\n", c1, c2);
-
-    // Step 6: Alice decrypts the message (decryptedMessage = (c2 * c1^(p-1-privateKeyA)) mod p)
-    decryptedMessage = (c2 * modExp(c1, p - 1 - privateKeyA, p)) % p;
-    printf("Decrypted message: %lld\n", decryptedMessage);
-
-    return 0;
-}
-```
-
-
+            #include <stdio.h> 
+            #include <stdlib.h> 
+            #include <math.h> 
+            int main() { 
+            int p, g, bob_private_key, message, k; 
+            printf("Enter a prime number (p): "); 
+            scanf("%d", &p); 
+            printf("Enter a primitive root modulo p (g): "); 
+            scanf("%d", &g); 
+            printf("Bob's private key (x): "); 
+            scanf("%d", &bob_private_key); 
+            int bob_public_key = 1; 
+            int base = g; 
+            int exp = bob_private_key; 
+            int mod = p; 
+            while (exp > 0) { 
+            if (exp % 2 == 1) { 
+                        bob_public_key = (bob_public_key * base) % mod; 
+                    } 
+                    base = (base * base) % mod; 
+                    exp = exp / 2; 
+                } 
+                 
+                printf("Bob's public key (y): %d\n", bob_public_key); 
+             
+                printf("Alice, enter the message (M) you want to send: "); 
+                scanf("%d", &message); 
+             
+                printf("Alice's private key (k): "); 
+                scanf("%d", &k); 
+             
+                int c1 = 1;  // c1 = g^k % p 
+                int c2 = 0;  // c2 = M * y^k % p 
+             
+                // Compute c1 = g^k % p 
+                base = g; 
+                exp = k; 
+                mod = p; 
+                 
+                while (exp > 0) { 
+                    if (exp % 2 == 1) { 
+                        c1 = (c1 * base) % mod; 
+                    } 
+                    base = (base * base) % mod; 
+                    exp = exp / 2; 
+                } 
+             
+                int yk = 1; 
+                base = bob_public_key; 
+                exp = k; 
+                mod = p; 
+                 
+                while (exp > 0) { 
+                    if (exp % 2 == 1) { 
+                        yk = (yk * base) % mod; 
+                    } 
+                    base = (base * base) % mod; 
+                    exp = exp / 2; 
+                } 
+             
+                // Compute c2 = M * y^k % p 
+                c2 = (message * yk) % p; 
+                 
+                printf("Alice sends encrypted message (c1, c2): (%d, %d)\n", c1, c2); 
+             
+                int s = 1;  // s = c1^x % p 
+             
+                // Compute s = c1^x % p 
+                base = c1; 
+                exp = bob_private_key; 
+                mod = p; 
+                 
+                while (exp > 0) { 
+                    if (exp % 2 == 1) { 
+                        s = (s * base) % mod; 
+                    } 
+                    base = (base * base) % mod; 
+                    exp = exp / 2; 
+                } 
+             
+                int s_inv = 1; 
+                int s_temp = s; 
+                int p_temp = p; 
+                int t, q; 
+                int x0 = 0, x1 = 1; 
+             
+                while (s_temp > 1) { 
+                    q = s_temp / p_temp; 
+                    t = p_temp; 
+                    p_temp = s_temp % p_temp, s_temp = t; 
+                    t = x0; 
+                    x0 = x1 - q * x0; 
+            x1 = t; 
+            } 
+            if (x1 < 0) { 
+            x1 += p; 
+            } 
+            s_inv = x1; 
+            // Bob decrypts the message: M = c2 * s_inv % p 
+            int decrypted_message = (c2 * s_inv) % p; 
+            printf("Bob decrypts the message: %d\n", decrypted_message); 
+            return 0; 
+            }
 
 ## Output:
-![Screenshot 2024-11-13 103823](https://github.com/user-attachments/assets/83a63199-af1a-4b5d-bb95-0e1dafabd477)
+
+<img width="1671" height="801" alt="image" src="https://github.com/user-attachments/assets/f64d46eb-d362-4d76-ad1e-5e7ec9443b4c" />
 
 
 ## Result:
